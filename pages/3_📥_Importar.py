@@ -1,44 +1,11 @@
 # pages/3_📥_Importar.py
-import requests
 import streamlit as st
-
-BACKEND_URL = st.secrets.get("BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
+from utils.api import api_post, show_http_error, handle_unauthorized
 
 st.set_page_config(page_title="Importar", layout="wide")
 
 if "token" not in st.session_state:
     st.session_state["token"] = None
-if "page" not in st.session_state:
-    st.session_state["page"] = 0
-
-def auth_headers():
-    t = st.session_state.get("token")
-    return {"x-token": t} if t else {}
-
-def safe_json(resp: requests.Response):
-    try:
-        return resp.json()
-    except Exception:
-        return None
-
-def handle_unauthorized(resp: requests.Response) -> bool:
-    if resp.status_code == 401:
-        st.session_state["token"] = None
-        st.error("Token inválido / sesión expirada. Volvé a Home y logueate de nuevo.")
-        return True
-    return False
-
-def show_http_error(resp: requests.Response, default="Error"):
-    data = safe_json(resp)
-    detail = data.get("detail") if isinstance(data, dict) else None
-    st.error(detail or f"{default}: {resp.status_code} - {resp.text}")
-
-def request_post(url: str, **kwargs):
-    try:
-        return requests.post(url, **kwargs)
-    except Exception as e:
-        st.error(f"Error conexión (POST): {e}")
-        return None
 
 st.title("📥 Importar personas (CSV o Excel)")
 
@@ -51,27 +18,21 @@ st.info(
     "actualizar existentes completando datos/meses sin duplicar."
 )
 
-up = st.file_uploader("Cargar archivo", type=["csv", "xls", "xlsx"], key="uploader_page")
+up = st.file_uploader("Cargar archivo", type=["csv", "xls", "xlsx"])
 
-if st.button("Importar archivo", key="btn_importar_page"):
+if st.button("Importar archivo"):
     if up is None:
         st.warning("Primero cargá un archivo.")
     else:
         files = {"file": (up.name, up.getvalue(), up.type or "application/octet-stream")}
-        r = request_post(
-            f"{BACKEND_URL}/import-personas",
-            headers=auth_headers(),
-            files=files,
-            timeout=300,
-        )
+        r = api_post("/import-personas", files=files, timeout=300)
         if r is None:
             st.stop()
         if handle_unauthorized(r):
             st.stop()
         if r.status_code == 200:
-            data = safe_json(r) or {}
-            st.success(data.get("detail", "Importación OK"))
-            st.session_state["page"] = 0
+            data = r.json() if r.headers.get("content-type","").startswith("application/json") else {}
+            st.success((data or {}).get("detail", "Importación OK"))
             st.rerun()
         else:
             show_http_error(r, "Importación fallida")
