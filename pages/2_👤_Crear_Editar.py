@@ -1,11 +1,8 @@
 # pages/2_👤_Crear_Editar.py
-import os
 import requests
 import streamlit as st
 
 BACKEND_URL = st.secrets.get("BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
-
-
 
 st.set_page_config(page_title="Crear/Editar", layout="wide")
 
@@ -18,25 +15,32 @@ def auth_headers():
     t = st.session_state.get("token")
     return {"x-token": t} if t else {}
 
-def safe_json(resp):
+def safe_json(resp: requests.Response):
     try:
         return resp.json()
     except Exception:
         return None
 
-def show_http_error(resp, default="Error"):
+def handle_unauthorized(resp: requests.Response) -> bool:
+    if resp.status_code == 401:
+        st.session_state["token"] = None
+        st.error("Token inválido / sesión expirada. Volvé a Home y logueate de nuevo.")
+        return True
+    return False
+
+def show_http_error(resp: requests.Response, default="Error"):
     data = safe_json(resp)
     detail = data.get("detail") if isinstance(data, dict) else None
     st.error(detail or f"{default}: {resp.status_code} - {resp.text}")
 
-def request_post(url, **kwargs):
+def request_post(url: str, **kwargs):
     try:
         return requests.post(url, **kwargs)
     except Exception as e:
         st.error(f"Error conexión (POST): {e}")
         return None
 
-def request_put(url, **kwargs):
+def request_put(url: str, **kwargs):
     try:
         return requests.put(url, **kwargs)
     except Exception as e:
@@ -55,9 +59,8 @@ nombre = st.text_input("Nombre", key="ce_nombre_page")
 apellido = st.text_input("Apellido", key="ce_apellido_page")
 telefono = st.text_input("Teléfono", key="ce_telefono_page")
 dnis_text = st.text_input("DNIs (separados por coma)", key="ce_dnis_page", placeholder="12345678, 23456789")
-dnis_list = [{"dni": d.strip()} for d in dnis_text.split(",") if d.strip()]
 
-st.caption("✅ Los botones siempre se ven. Si no los ves, estás ejecutando otra app/otro archivo.")
+dnis_list = [{"dni": d.strip()} for d in (dnis_text or "").split(",") if d.strip()]
 
 if modo == "Crear nueva":
     if st.button("Crear persona", key="btn_crear_page"):
@@ -71,13 +74,15 @@ if modo == "Crear nueva":
                 json={
                     "nombre": nombre.strip(),
                     "apellido": apellido.strip(),
-                    "telefono": telefono.strip(),
+                    "telefono": (telefono or "").strip(),
                     "dnis": dnis_list,
                 },
                 headers=auth_headers(),
                 timeout=30,
             )
             if r is None:
+                st.stop()
+            if handle_unauthorized(r):
                 st.stop()
             if r.status_code in (200, 201):
                 st.success("OK (creada o actualizada por DNI)")
@@ -98,13 +103,15 @@ else:
                 json={
                     "nombre": nombre.strip(),
                     "apellido": apellido.strip(),
-                    "telefono": telefono.strip(),
+                    "telefono": (telefono or "").strip(),
                     "dnis": dnis_list,
                 },
                 headers=auth_headers(),
                 timeout=30,
             )
             if r is None:
+                st.stop()
+            if handle_unauthorized(r):
                 st.stop()
             if r.status_code == 200:
                 st.success("Persona actualizada")

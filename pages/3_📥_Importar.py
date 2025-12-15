@@ -1,11 +1,8 @@
 # pages/3_📥_Importar.py
-import os
 import requests
 import streamlit as st
 
 BACKEND_URL = st.secrets.get("BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
-
-
 
 st.set_page_config(page_title="Importar", layout="wide")
 
@@ -18,18 +15,25 @@ def auth_headers():
     t = st.session_state.get("token")
     return {"x-token": t} if t else {}
 
-def safe_json(resp):
+def safe_json(resp: requests.Response):
     try:
         return resp.json()
     except Exception:
         return None
 
-def show_http_error(resp, default="Error"):
+def handle_unauthorized(resp: requests.Response) -> bool:
+    if resp.status_code == 401:
+        st.session_state["token"] = None
+        st.error("Token inválido / sesión expirada. Volvé a Home y logueate de nuevo.")
+        return True
+    return False
+
+def show_http_error(resp: requests.Response, default="Error"):
     data = safe_json(resp)
     detail = data.get("detail") if isinstance(data, dict) else None
     st.error(detail or f"{default}: {resp.status_code} - {resp.text}")
 
-def request_post(url, **kwargs):
+def request_post(url: str, **kwargs):
     try:
         return requests.post(url, **kwargs)
     except Exception as e:
@@ -49,7 +53,6 @@ st.info(
 
 up = st.file_uploader("Cargar archivo", type=["csv", "xls", "xlsx"], key="uploader_page")
 
-# ✅ botón siempre visible
 if st.button("Importar archivo", key="btn_importar_page"):
     if up is None:
         st.warning("Primero cargá un archivo.")
@@ -62,6 +65,8 @@ if st.button("Importar archivo", key="btn_importar_page"):
             timeout=300,
         )
         if r is None:
+            st.stop()
+        if handle_unauthorized(r):
             st.stop()
         if r.status_code == 200:
             data = safe_json(r) or {}
