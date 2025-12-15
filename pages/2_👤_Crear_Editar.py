@@ -3,7 +3,7 @@ import os
 import requests
 import streamlit as st
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./personas.db")
+BACKEND_URL = st.secrets.get("BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 
 
 

@@ -3,11 +3,7 @@ import requests
 import streamlit as st
 
 # 🔐 DEFINICIÓN BLINDADA
-BACKEND_URL = os.environ.get("BACKEND_URL")
-if not BACKEND_URL:
-    BACKEND_URL = "http://127.0.0.1:8001"
-
-BACKEND_URL = BACKEND_URL.rstrip("/")
+BACKEND_URL = st.secrets.get("BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
 
 st.set_page_config(page_title="Personas - Home", layout="wide")
 
