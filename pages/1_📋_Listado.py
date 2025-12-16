@@ -133,49 +133,49 @@ for p in persons:
                 show_http_error(r2, "No se pudo guardar observaciones")
 
                         # --- Botones: Guardar / Eliminar ---
-        colA, colB = st.columns([1, 1])
+# --- Botones: Guardar / Eliminar ---
+colA, colB = st.columns([1, 1])
 
-        with colA:
-            if st.button("Guardar observaciones", key=f"save_obs_{pid}"):
-                r2 = api_put(f"/persons/{pid}/observations", json=edited, timeout=30)
-                if r2 is None:
+with colA:
+    if st.button("Guardar observaciones", key=f"save_obs_{pid}"):
+        r2 = api_put(f"/persons/{pid}/observations", json=edited, timeout=30)
+        if r2 is None:
+            st.stop()
+        if handle_unauthorized(r2):
+            st.stop()
+        if r2.status_code == 200:
+            st.success("Observaciones actualizadas")
+            st.rerun()
+        else:
+            show_http_error(r2, "No se pudo guardar observaciones")
+
+with colB:
+    confirm_key = f"confirm_delete_{pid}"
+    if confirm_key not in st.session_state:
+        st.session_state[confirm_key] = False
+
+    if not st.session_state[confirm_key]:
+        if st.button("🗑 Eliminar persona", key=f"del_{pid}"):
+            st.session_state[confirm_key] = True
+            st.warning("Confirmá la eliminación 👇")
+            st.rerun()
+    else:
+        st.error("⚠️ Esto elimina la persona y sus datos.")
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("✅ Sí, eliminar", key=f"del_yes_{pid}"):
+                rdel = api_delete(f"/persons/{pid}", timeout=30)
+                if rdel is None:
                     st.stop()
-                if handle_unauthorized(r2):
+                if handle_unauthorized(rdel):
                     st.stop()
-                if r2.status_code == 200:
-                    st.success("Observaciones actualizadas")
+                if rdel.status_code in (200, 204):
+                    st.success("Persona eliminada")
+                    st.session_state[confirm_key] = False
                     st.rerun()
                 else:
-                    show_http_error(r2, "No se pudo guardar observaciones")
-
-        with colB:
-            confirm_key = f"confirm_delete_{pid}"
-            if confirm_key not in st.session_state:
+                    show_http_error(rdel, "No se pudo eliminar")
+        with c2:
+            if st.button("❌ Cancelar", key=f"del_no_{pid}"):
                 st.session_state[confirm_key] = False
-
-            if not st.session_state[confirm_key]:
-                if st.button("🗑 Eliminar persona", key=f"del_{pid}"):
-                    st.session_state[confirm_key] = True
-                    st.warning("Confirmá la eliminación 👇")
-                    st.rerun()
-            else:
-                st.error("⚠️ Esto elimina la persona y sus datos.")
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button("✅ Sí, eliminar", key=f"del_yes_{pid}"):
-                        rdel = api_delete(f"/persons/{pid}", timeout=30)
-                        if rdel is None:
-                            st.stop()
-                        if handle_unauthorized(rdel):
-                            st.stop()
-                        if rdel.status_code in (200, 204):
-                            st.success("Persona eliminada")
-                            st.session_state[confirm_key] = False
-                            st.rerun()
-                        else:
-                            show_http_error(rdel, "No se pudo eliminar")
-                with c2:
-                    if st.button("❌ Cancelar", key=f"del_no_{pid}"):
-                        st.session_state[confirm_key] = False
-                        st.rerun()
-
+                st.rerun()
