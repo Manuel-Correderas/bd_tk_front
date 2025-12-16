@@ -6,7 +6,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from app_utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json
+from app_utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json, handle_unauthorized
 
 st.set_page_config(page_title="Importar", layout="wide")
 

@@ -40,3 +40,20 @@ def api_put(path: str, **kwargs):
     except Exception as e:
         st.error(f"Error conexión (PUT): {e}")
         return None
+def handle_unauthorized(resp) -> bool:
+    """
+    Devuelve True si fue 401/403 y ya manejó el caso (logout + mensaje).
+    """
+    if resp is None:
+        return False
+
+    if resp.status_code in (401, 403):
+        st.session_state["token"] = None
+        st.warning("Tu sesión expiró o no tenés permisos. Volvé a iniciar sesión.")
+        try:
+            st.switch_page("app_streamlit.py")  # Streamlit >= 1.22
+        except Exception:
+            st.rerun()
+        return True
+
+    return False
