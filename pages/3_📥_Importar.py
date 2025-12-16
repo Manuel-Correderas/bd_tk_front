@@ -1,6 +1,6 @@
 # pages/3_📥_Importar.py
 import streamlit as st
-from utils.api import api_post, show_http_error, handle_unauthorized
+from utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json
 
 st.set_page_config(page_title="Importar", layout="wide")
 

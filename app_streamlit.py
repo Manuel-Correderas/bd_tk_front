@@ -1,6 +1,7 @@
 ##BD_TK_FRONT/app_streamlit.py
 import streamlit as st
-from utils.api import api_post
+from utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json
+
 
 st.set_page_config(page_title="Personas - Home", layout="wide")
 

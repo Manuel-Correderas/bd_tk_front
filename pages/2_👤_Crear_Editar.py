@@ -1,6 +1,7 @@
 # pages/2_👤_Crear_Editar.py
 import streamlit as st
-from utils.api import api_post, api_put, show_http_error, handle_unauthorized
+
+from utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json
 
 st.set_page_config(page_title="Crear/Editar", layout="wide")
 
