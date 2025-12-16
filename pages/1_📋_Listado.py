@@ -137,7 +137,7 @@ for p in persons:
 colA, colB = st.columns([1, 1])
 
 with colA:
-    if st.button("Guardar observaciones", key=f"save_obs_{pid}"):
+    if st.button("💾 Guardar observaciones", key=f"save_obs_{pid}_btn"):
         r2 = api_put(f"/persons/{pid}/observations", json=edited, timeout=30)
         if r2 is None:
             st.stop()
@@ -155,15 +155,14 @@ with colB:
         st.session_state[confirm_key] = False
 
     if not st.session_state[confirm_key]:
-        if st.button("🗑 Eliminar persona", key=f"del_{pid}"):
+        if st.button("🗑 Eliminar persona", key=f"del_{pid}_btn"):
             st.session_state[confirm_key] = True
-            st.warning("Confirmá la eliminación 👇")
             st.rerun()
     else:
-        st.error("⚠️ Esto elimina la persona y sus datos.")
+        st.error("⚠️ Esto elimina la persona y todos sus datos.")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("✅ Sí, eliminar", key=f"del_yes_{pid}"):
+            if st.button("✅ Sí, eliminar", key=f"del_yes_{pid}_btn"):
                 rdel = api_delete(f"/persons/{pid}", timeout=30)
                 if rdel is None:
                     st.stop()
@@ -176,6 +175,6 @@ with colB:
                 else:
                     show_http_error(rdel, "No se pudo eliminar")
         with c2:
-            if st.button("❌ Cancelar", key=f"del_no_{pid}"):
+            if st.button("❌ Cancelar", key=f"del_no_{pid}_btn"):
                 st.session_state[confirm_key] = False
                 st.rerun()
