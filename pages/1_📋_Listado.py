@@ -9,6 +9,15 @@ if ROOT not in sys.path:
 
 from app_utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json, handle_unauthorized
 
+def handle_unauthorized(resp) -> bool:
+    if resp is None:
+        return False
+    if resp.status_code in (401, 403):
+        st.session_state["token"] = None
+        st.warning("Tu sesión expiró o no tenés permisos. Volvé a iniciar sesión.")
+        st.rerun()
+        return True
+    return False
 
 PAGE_SIZE = 50
 st.set_page_config(page_title="Listado", layout="wide")
