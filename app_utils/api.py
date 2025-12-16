@@ -3,7 +3,7 @@ import requests
 import streamlit as st
 
 def backend_url() -> str:
-    return st.secrets.get("BACKEND_URL", "http://127.0.0.1:8001").rstrip("/")
+    return st.secrets.get("BACKEND_URL", "http://127.0.0.1:10000").rstrip("/")
 
 def auth_headers():
     t = st.session_state.get("token")
