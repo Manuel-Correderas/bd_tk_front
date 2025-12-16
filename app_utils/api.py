@@ -47,3 +47,18 @@ def api_post(path: str, **kwargs):
 
 def api_put(path: str, **kwargs):
     return _request("PUT", path, **kwargs)
+def handle_unauthorized(resp) -> bool:
+    """
+    Devuelve True si la respuesta indica no autorizado y ya manejó el flujo.
+    """
+    if resp is None:
+        return False
+
+    if getattr(resp, "status_code", None) in (401, 403):
+        st.session_state["token"] = None
+        st.warning("Tu sesión expiró o no tenés permisos. Volvé a iniciar sesión.")
+        # opcional: te manda al inicio
+        # st.switch_page("app_streamlit.py")  # si querés forzar home
+        return True
+
+    return False
