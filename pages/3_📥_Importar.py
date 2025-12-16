@@ -1,6 +1,12 @@
 # pages/3_📥_Importar.py
 import streamlit as st
-from utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json
+import os, sys
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+from app_utils.api import api_get, api_post, api_put, auth_headers, show_http_error, safe_json
 
 st.set_page_config(page_title="Importar", layout="wide")
 
