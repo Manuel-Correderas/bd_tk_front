@@ -62,3 +62,5 @@ def handle_unauthorized(resp) -> bool:
         return True
 
     return False
+def api_delete(path: str, **kwargs):
+    return _request("DELETE", path, **kwargs)
