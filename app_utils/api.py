@@ -22,9 +22,13 @@ def show_http_error(resp, default="Error"):
 
 def _request(method: str, path: str, timeout: int = 20, **kwargs):
     url = f"{backend_url()}{path}"
-    kwargs.setdefault("headers", auth_headers())
 
-    # ✅ evita duplicado
+    # headers default + merge
+    hdrs = auth_headers()
+    if "headers" in kwargs and isinstance(kwargs["headers"], dict):
+        hdrs.update(kwargs["headers"])
+    kwargs["headers"] = hdrs
+
     if "timeout" in kwargs:
         timeout = kwargs.pop("timeout")
 
@@ -33,6 +37,7 @@ def _request(method: str, path: str, timeout: int = 20, **kwargs):
     except Exception as e:
         st.error(f"Error conexión ({method}): {e}")
         return None
+
 
 def api_get(path: str, **kwargs):
     return _request("GET", path, **kwargs)
